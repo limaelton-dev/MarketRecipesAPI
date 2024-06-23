@@ -10,6 +10,8 @@ namespace MarketRecipesAPI.Models
         [Required(ErrorMessage = "O nome da receita é obrigatório.")]
         public string Name { get; set; }
 
+        public string Description { get; set; } // Descrição da receita
+
         [JsonIgnore]
         public List<RecipeIngredient> RecipeIngredients { get; set; } = new List<RecipeIngredient>();
 
@@ -19,9 +21,8 @@ namespace MarketRecipesAPI.Models
             {
                 if (RecipeIngredients != null && RecipeIngredients.Any())
                 {
-                    // Calcula a soma dos custos dos ingredientes apenas se nenhum deles for null
                     return RecipeIngredients.Where(ri => ri != null && ri.Ingredient != null)
-                                            .Sum(ri => ri.Ingredient.Cost);
+                                            .Sum(ri => ri.Ingredient.Cost * (decimal)ri.Quantity);
                 }
                 else
                 {
@@ -29,6 +30,5 @@ namespace MarketRecipesAPI.Models
                 }
             }
         }
-
     }
 }

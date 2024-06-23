@@ -3,7 +3,6 @@ using MarketRecipesAPI.Dtos;
 using MarketRecipesAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace MarketRecipesAPI.Controllers
 {
@@ -19,14 +18,22 @@ namespace MarketRecipesAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateIngredient([FromBody] Ingredient ingredient)
+        public async Task<IActionResult> CreateIngredients([FromBody] IngredientsCreateDto ingredientsDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            _context.Ingredients.Add(ingredient);
+            var ingredients = ingredientsDto.Ingredients.Select(i => new Ingredient
+            {
+                Name = i.Name,
+                Cost = i.Cost,
+                Unit = i.Unit
+            }).ToList();
+
+            _context.Ingredients.AddRange(ingredients);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetIngredientById), new { id = ingredient.Id }, ingredient);
+
+            return Ok(ingredients);
         }
 
         [HttpGet("{id}")]
@@ -84,6 +91,7 @@ namespace MarketRecipesAPI.Controllers
 
             ingredient.Name = ingredientUpdateDto.Name;
             ingredient.Cost = ingredientUpdateDto.Cost;
+            ingredient.Unit = ingredientUpdateDto.Unit; // Atualizando a unidade de medida
 
             using var transaction = _context.Database.BeginTransaction();
             try
@@ -91,7 +99,6 @@ namespace MarketRecipesAPI.Controllers
                 _context.Update(ingredient);
                 await _context.SaveChangesAsync();
 
-                // Atualiza o custo total das receitas que utilizam este ingrediente
                 var recipesToUpdate = await _context.Recipes
                     .Include(r => r.RecipeIngredients)
                         .ThenInclude(ri => ri.Ingredient)
@@ -100,7 +107,6 @@ namespace MarketRecipesAPI.Controllers
 
                 foreach (var recipe in recipesToUpdate)
                 {
-                    // Atualiza o custo da receita após a mudança de custo do ingrediente
                     _context.Update(recipe);  // O Entity Framework recalcula o custo total da receita
                 }
 
@@ -111,10 +117,8 @@ namespace MarketRecipesAPI.Controllers
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                // Log the exception (consider using a logging framework)
                 return StatusCode(500, "Algo de errado aconteceu ao atualizar.");
             }
         }
-
     }
 }

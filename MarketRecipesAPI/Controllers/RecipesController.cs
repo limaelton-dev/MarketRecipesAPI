@@ -28,15 +28,13 @@ namespace MarketRecipesAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Verifica se o nome da receita é único
             if (!await _recipeService.IsRecipeNameUnique(recipeDto.Name))
             {
                 ModelState.AddModelError("Name", "O nome da receita já está em uso.");
                 return BadRequest(ModelState);
             }
 
-            // Verifica se todos os ingredientes são válidos
-            if (!await _recipeService.AreIngredientsValid(recipeDto.IngredientIds))
+            if (!await _recipeService.AreIngredientsValid(recipeDto.Ingredients.Select(i => i.IngredientId).ToList()))
             {
                 ModelState.AddModelError("Ingredients", "Todos os ingredientes devem ser válidos e existir no banco de dados.");
                 return BadRequest(ModelState);
@@ -45,9 +43,11 @@ namespace MarketRecipesAPI.Controllers
             var recipe = new Recipe
             {
                 Name = recipeDto.Name,
-                RecipeIngredients = recipeDto.IngredientIds.Select(id => new RecipeIngredient
+                Description = recipeDto.Description, // Adicionando a descrição
+                RecipeIngredients = recipeDto.Ingredients.Select(i => new RecipeIngredient
                 {
-                    IngredientId = id
+                    IngredientId = i.IngredientId,
+                    Quantity = i.Quantity // Adicionando a quantidade de cada produto na receita
                 }).ToList()
             };
 
@@ -58,11 +58,11 @@ namespace MarketRecipesAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetRecipeById(int id)
+        public async Task<ActionResult<RecipeDetailDto>> GetRecipeById(int id)
         {
             var recipe = await _context.Recipes
                 .Include(r => r.RecipeIngredients)
-                    .ThenInclude(ri => ri.Ingredient)
+                .ThenInclude(ri => ri.Ingredient)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (recipe == null)
@@ -70,7 +70,23 @@ namespace MarketRecipesAPI.Controllers
                 return NotFound();
             }
 
-            return Ok(recipe);
+            var recipeDetailDto = new RecipeDetailDto
+            {
+                Id = recipe.Id,
+                Name = recipe.Name,
+                Description = recipe.Description, // Adicionando a descrição
+                TotalCost = recipe.TotalCost,
+                Ingredients = recipe.RecipeIngredients.Select(ri => new RecipeDetailDto.IngredientDto
+                {
+                    Id = ri.Ingredient.Id,
+                    Name = ri.Ingredient.Name,
+                    Cost = ri.Ingredient.Cost,
+                    Unit = ri.Ingredient.Unit, // Adicionando a unidade de medida
+                    Quantity = ri.Quantity // Adicionando a quantidade de cada produto na receita
+                }).ToList()
+            };
+
+            return Ok(recipeDetailDto);
         }
 
         [HttpPost("byIngredients")]
@@ -131,20 +147,19 @@ namespace MarketRecipesAPI.Controllers
             }
 
             recipe.Name = recipeUpdateDto.Name;
+            recipe.Description = recipeUpdateDto.Description; // Atualizando a descrição
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Atualiza os ingredientes (se fornecidos)
-                if (recipeUpdateDto.IngredientIds != null && recipeUpdateDto.IngredientIds.Any())
+                if (recipeUpdateDto.Ingredients != null && recipeUpdateDto.Ingredients.Any())
                 {
-                    // Remove os ingredientes existentes
                     _context.RecipeIngredients.RemoveRange(recipe.RecipeIngredients);
 
-                    // Adiciona os novos ingredientes
-                    recipe.RecipeIngredients = recipeUpdateDto.IngredientIds.Select(ingredientId => new RecipeIngredient
+                    recipe.RecipeIngredients = recipeUpdateDto.Ingredients.Select(i => new RecipeIngredient
                     {
-                        IngredientId = ingredientId,
+                        IngredientId = i.IngredientId,
+                        Quantity = i.Quantity, // Adicionando a quantidade de cada produto na receita
                         RecipeId = recipe.Id
                     }).ToList();
                 }
@@ -158,7 +173,6 @@ namespace MarketRecipesAPI.Controllers
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                // Log the exception (consider using a logging framework)
                 return StatusCode(500, "Algo de errado aconteceu ao atualizar.");
             }
         }
