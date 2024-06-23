@@ -4,9 +4,6 @@ using MarketRecipesAPI.Models;
 using MarketRecipesAPI.Data;
 using MarketRecipesAPI.Dtos;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace MarketRecipesAPI.Controllers
 {
@@ -86,6 +83,33 @@ namespace MarketRecipesAPI.Controllers
                 .ToListAsync();
 
             return Ok(recipes);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllRecipes()
+        {
+            var recipes = await _context.Recipes
+                .Include(r => r.RecipeIngredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                .ToListAsync();
+            return Ok(recipes);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteRecipe(int id)
+        {
+            var recipe = await _context.Recipes
+                .Include(r => r.RecipeIngredients)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recipe == null)
+            {
+                return NotFound();
+            }
+
+            _context.Recipes.Remove(recipe);
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
     }
 }

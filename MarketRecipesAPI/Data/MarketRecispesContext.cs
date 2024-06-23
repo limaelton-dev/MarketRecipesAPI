@@ -24,12 +24,14 @@ namespace MarketRecipesAPI.Data
             modelBuilder.Entity<RecipeIngredient>()
                 .HasOne(ri => ri.Recipe)
                 .WithMany(r => r.RecipeIngredients)
-                .HasForeignKey(ri => ri.RecipeId);
+                .HasForeignKey(ri => ri.RecipeId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<RecipeIngredient>()
                 .HasOne(ri => ri.Ingredient)
                 .WithMany()
-                .HasForeignKey(ri => ri.IngredientId);
+                .HasForeignKey(ri => ri.IngredientId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);
         }
