@@ -111,5 +111,56 @@ namespace MarketRecipesAPI.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateRecipe(int id, [FromBody] RecipeUpdateDto recipeUpdateDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var recipe = await _context.Recipes
+                .Include(r => r.RecipeIngredients)
+                .ThenInclude(ri => ri.Ingredient)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (recipe == null)
+            {
+                return NotFound();
+            }
+
+            recipe.Name = recipeUpdateDto.Name;
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // Atualiza os ingredientes (se fornecidos)
+                if (recipeUpdateDto.IngredientIds != null && recipeUpdateDto.IngredientIds.Any())
+                {
+                    // Remove os ingredientes existentes
+                    _context.RecipeIngredients.RemoveRange(recipe.RecipeIngredients);
+
+                    // Adiciona os novos ingredientes
+                    recipe.RecipeIngredients = recipeUpdateDto.IngredientIds.Select(ingredientId => new RecipeIngredient
+                    {
+                        IngredientId = ingredientId,
+                        RecipeId = recipe.Id
+                    }).ToList();
+                }
+
+                _context.Update(recipe);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                // Log the exception (consider using a logging framework)
+                return StatusCode(500, "Algo de errado aconteceu ao atualizar.");
+            }
+        }
     }
 }
