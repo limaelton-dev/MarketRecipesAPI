@@ -11,6 +11,7 @@ namespace MarketRecipesAPI.Data
         public DbSet<Ingredient> Ingredients { get; set; }
         public DbSet<Recipe> Recipes { get; set; }
         public DbSet<RecipeIngredient> RecipeIngredients { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,6 +33,10 @@ namespace MarketRecipesAPI.Data
                 .WithMany()
                 .HasForeignKey(ri => ri.IngredientId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
 
             base.OnModelCreating(modelBuilder);
         }

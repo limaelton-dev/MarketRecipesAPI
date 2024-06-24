@@ -1,6 +1,7 @@
 ﻿using MarketRecipesAPI.Data;
 using MarketRecipesAPI.Dtos;
 using MarketRecipesAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +19,7 @@ namespace MarketRecipesAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CreateIngredients([FromBody] IngredientsCreateDto ingredientsDto)
         {
             if (!ModelState.IsValid)
@@ -55,6 +57,7 @@ namespace MarketRecipesAPI.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteIngredient(int id)
         {
             var ingredient = await _context.Ingredients.FindAsync(id);
@@ -76,6 +79,7 @@ namespace MarketRecipesAPI.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateIngredient(int id, [FromBody] IngredientUpdateDto ingredientUpdateDto)
         {
             if (!ModelState.IsValid)
@@ -91,7 +95,7 @@ namespace MarketRecipesAPI.Controllers
 
             ingredient.Name = ingredientUpdateDto.Name;
             ingredient.Cost = ingredientUpdateDto.Cost;
-            ingredient.Unit = ingredientUpdateDto.Unit; // Atualizando a unidade de medida
+            ingredient.Unit = ingredientUpdateDto.Unit;
 
             using var transaction = _context.Database.BeginTransaction();
             try
@@ -107,7 +111,7 @@ namespace MarketRecipesAPI.Controllers
 
                 foreach (var recipe in recipesToUpdate)
                 {
-                    _context.Update(recipe);  // O Entity Framework recalcula o custo total da receita
+                    _context.Update(recipe);
                 }
 
                 await _context.SaveChangesAsync();

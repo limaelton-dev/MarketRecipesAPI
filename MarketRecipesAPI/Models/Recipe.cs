@@ -10,7 +10,7 @@ namespace MarketRecipesAPI.Models
         [Required(ErrorMessage = "O nome da receita é obrigatório.")]
         public string Name { get; set; }
 
-        public string Description { get; set; } // Descrição da receita
+        public string Description { get; set; }
 
         [JsonIgnore]
         public List<RecipeIngredient> RecipeIngredients { get; set; } = new List<RecipeIngredient>();

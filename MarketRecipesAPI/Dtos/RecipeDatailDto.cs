@@ -4,7 +4,7 @@
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public string Description { get; set; } // Descrição da receita
+        public string Description { get; set; }
         public decimal TotalCost { get; set; }
         public List<IngredientDto> Ingredients { get; set; }
 
@@ -13,8 +13,8 @@
             public int Id { get; set; }
             public string Name { get; set; }
             public decimal Cost { get; set; }
-            public string Unit { get; set; } // Unidade de medida do ingrediente
-            public float Quantity { get; set; } // Quantidade de cada produto na receita
+            public string Unit { get; set; }
+            public float Quantity { get; set; }
         }
     }
 }

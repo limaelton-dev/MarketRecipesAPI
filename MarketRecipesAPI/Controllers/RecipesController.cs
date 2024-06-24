@@ -4,6 +4,7 @@ using MarketRecipesAPI.Models;
 using MarketRecipesAPI.Data;
 using MarketRecipesAPI.Dtos;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MarketRecipesAPI.Controllers
 {
@@ -21,6 +22,7 @@ namespace MarketRecipesAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CreateRecipe([FromBody] RecipeCreateDto recipeDto)
         {
             if (!ModelState.IsValid)
@@ -43,11 +45,11 @@ namespace MarketRecipesAPI.Controllers
             var recipe = new Recipe
             {
                 Name = recipeDto.Name,
-                Description = recipeDto.Description, // Adicionando a descrição
+                Description = recipeDto.Description,
                 RecipeIngredients = recipeDto.Ingredients.Select(i => new RecipeIngredient
                 {
                     IngredientId = i.IngredientId,
-                    Quantity = i.Quantity // Adicionando a quantidade de cada produto na receita
+                    Quantity = i.Quantity
                 }).ToList()
             };
 
@@ -74,15 +76,15 @@ namespace MarketRecipesAPI.Controllers
             {
                 Id = recipe.Id,
                 Name = recipe.Name,
-                Description = recipe.Description, // Adicionando a descrição
+                Description = recipe.Description,
                 TotalCost = recipe.TotalCost,
                 Ingredients = recipe.RecipeIngredients.Select(ri => new RecipeDetailDto.IngredientDto
                 {
                     Id = ri.Ingredient.Id,
                     Name = ri.Ingredient.Name,
                     Cost = ri.Ingredient.Cost,
-                    Unit = ri.Ingredient.Unit, // Adicionando a unidade de medida
-                    Quantity = ri.Quantity // Adicionando a quantidade de cada produto na receita
+                    Unit = ri.Ingredient.Unit,
+                    Quantity = ri.Quantity
                 }).ToList()
             };
 
@@ -90,6 +92,7 @@ namespace MarketRecipesAPI.Controllers
         }
 
         [HttpPost("byIngredients")]
+        [Authorize]
         public async Task<IActionResult> GetRecipesByIngredients([FromBody] List<int> ingredientIds)
         {
             var recipes = await _context.Recipes
@@ -112,6 +115,7 @@ namespace MarketRecipesAPI.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteRecipe(int id)
         {
             var recipe = await _context.Recipes
@@ -129,6 +133,7 @@ namespace MarketRecipesAPI.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateRecipe(int id, [FromBody] RecipeUpdateDto recipeUpdateDto)
         {
             if (!ModelState.IsValid)
@@ -147,7 +152,7 @@ namespace MarketRecipesAPI.Controllers
             }
 
             recipe.Name = recipeUpdateDto.Name;
-            recipe.Description = recipeUpdateDto.Description; // Atualizando a descrição
+            recipe.Description = recipeUpdateDto.Description;
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -159,7 +164,7 @@ namespace MarketRecipesAPI.Controllers
                     recipe.RecipeIngredients = recipeUpdateDto.Ingredients.Select(i => new RecipeIngredient
                     {
                         IngredientId = i.IngredientId,
-                        Quantity = i.Quantity, // Adicionando a quantidade de cada produto na receita
+                        Quantity = i.Quantity,
                         RecipeId = recipe.Id
                     }).ToList();
                 }

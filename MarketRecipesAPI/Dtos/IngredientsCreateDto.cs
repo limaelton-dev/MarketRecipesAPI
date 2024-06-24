@@ -17,7 +17,7 @@ namespace MarketRecipesAPI.Dtos
             public decimal Cost { get; set; }
 
             [Required(ErrorMessage = "A unidade de medida é obrigatória.")]
-            public string Unit { get; set; } // Unidade de medida do ingrediente
+            public string Unit { get; set; }
         }
     }
 }

@@ -10,7 +10,7 @@ namespace MarketRecipesAPI.Dtos
         [Required(ErrorMessage = "O nome da receita é obrigatório.")]
         public string Name { get; set; }
 
-        public string Description { get; set; } // Descrição da receita
+        public string Description { get; set; }
 
         [Required(ErrorMessage = "Os ingredientes são obrigatórios.")]
         [MinLength(2, ErrorMessage = "A receita deve conter pelo menos 2 ingredientes.")]
@@ -23,7 +23,7 @@ namespace MarketRecipesAPI.Dtos
             public int IngredientId { get; set; }
 
             [Range(0.01, double.MaxValue, ErrorMessage = "A quantidade deve ser maior que zero.")]
-            public float Quantity { get; set; } // Quantidade de cada produto na receita
+            public float Quantity { get; set; }
         }
     }
 }
