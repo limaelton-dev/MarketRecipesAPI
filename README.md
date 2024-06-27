@@ -56,6 +56,8 @@ Para obter o *token* é necessário criar um usuário e na sequência fazer POST com
 ## Para criar Ingredientes:
 - O custo deve ser maior que zero.
 - A unidade é uma string livre.
+- Ao excluir um ingrediente, as receitas com esse ingrediente também são excluídas.
+- É possível criar mais de um ingrediente por vez informando uma lista.
 
 ## Para criar Receitas: 
 - Você deve adicionar pelo menos 2 ingrediente.
@@ -67,6 +69,8 @@ Para obter o *token* é necessário criar um usuário e na sequência fazer POST com
 
 
 ## **Endpoints**
+
+- Você pode acessar a collection desta API no Postman [clicando aqui](https://www.postman.com/gold-crescent-301983/workspace/marketrecipesapi/collection/29039931-6fa054bb-48fe-4931-904c-1b1cdf6b50d7?action=share&creator=29039931)
 
 ### **Usuários**
 #### *Criar Usuário
